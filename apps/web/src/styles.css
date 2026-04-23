@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #0f172a;
+  background: #f6efe5;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Fraunces", "Georgia", serif;
+}
+
+button {
+  cursor: pointer;
+  font: inherit;
+}
+
+* {
+  box-sizing: border-box;
+}

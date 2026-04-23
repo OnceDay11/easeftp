@@ -1,0 +1,5 @@
+apps/web/node_modules/
+apps/web/dist/
+apps/server/bin/
+apps/server/.cache/
+data/
