@@ -1,12 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { FolderKanban, HardDriveUpload, Link2, ShieldCheck } from "lucide-react";
 import { WorkspaceShell } from "./components/WorkspaceShell";
 import { fetchListing } from "./lib/api";
 
 export default function App() {
+  const [currentPath, setCurrentPath] = useState(".");
+
   const fileListing = useQuery({
-    queryKey: ["files", "."],
-    queryFn: () => fetchListing(".")
+    queryKey: ["files", currentPath],
+    queryFn: () => fetchListing(currentPath)
   });
 
   return (
@@ -36,6 +39,7 @@ export default function App() {
       listing={fileListing.data}
       isLoading={fileListing.isLoading}
       errorMessage={fileListing.error instanceof Error ? fileListing.error.message : null}
+      onNavigate={setCurrentPath}
     />
   );
 }

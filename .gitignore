@@ -3,3 +3,4 @@ apps/web/dist/
 apps/server/bin/
 apps/server/.cache/
 data/
+.copilot/

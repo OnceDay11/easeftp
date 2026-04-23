@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { ChevronRight, FileText, Folder, PanelRightOpen, Search } from "lucide-react";
+import { ChevronRight, FileText, Folder, FolderUp, PanelRightOpen, Search } from "lucide-react";
 import type { FileListing } from "../lib/api";
 
 type Highlight = {
@@ -13,12 +13,24 @@ type WorkspaceShellProps = {
   listing?: FileListing;
   isLoading: boolean;
   errorMessage: string | null;
+  onNavigate: (path: string) => void;
 };
 
 export function WorkspaceShell(props: WorkspaceShellProps) {
-  const breadcrumb = props.listing?.path === "." || !props.listing?.path
-    ? ["Workspace"]
-    : ["Workspace", ...props.listing.path.split("/")];
+  const currentPath = props.listing?.path ?? ".";
+  const breadcrumb = currentPath === "."
+    ? [{ label: "Workspace", path: "." }]
+    : [
+        { label: "Workspace", path: "." },
+        ...currentPath.split("/").map((segment, index, segments) => ({
+          label: segment,
+          path: segments.slice(0, index + 1).join("/")
+        }))
+      ];
+  const childDirectories = props.listing?.entries.filter((entry) => entry.isDir) ?? [];
+  const parentPath = currentPath === "."
+    ? null
+    : currentPath.split("/").slice(0, -1).join("/") || ".";
 
   return (
     <div className="min-h-screen bg-sand text-ink">
@@ -58,10 +70,40 @@ export function WorkspaceShell(props: WorkspaceShellProps) {
               <Folder className="h-5 w-5 text-ember" />
             </div>
             <div className="mt-6 space-y-3 text-sm text-slate-600">
-              <div className="rounded-2xl bg-sand px-4 py-3 font-medium text-ink">Workspace root</div>
-              <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-3">Marketing assets</div>
-              <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-3">Operations docs</div>
-              <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-3">Shared deliveries</div>
+              <button
+                type="button"
+                className="w-full rounded-2xl bg-sand px-4 py-3 text-left font-medium text-ink"
+                onClick={() => props.onNavigate(".")}
+              >
+                Workspace root
+              </button>
+              {parentPath ? (
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-left"
+                  onClick={() => props.onNavigate(parentPath)}
+                >
+                  <FolderUp className="h-4 w-4 text-slate-500" />
+                  <span>Parent directory</span>
+                </button>
+              ) : null}
+              {childDirectories.length > 0 ? (
+                childDirectories.map((entry) => (
+                  <button
+                    key={entry.path}
+                    type="button"
+                    className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-left transition hover:border-spruce/40 hover:bg-spruce/5"
+                    onClick={() => props.onNavigate(entry.path)}
+                  >
+                    <Folder className="h-4 w-4 text-spruce" />
+                    <span className="truncate">{entry.name}</span>
+                  </button>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-slate-500">
+                  No child directories in this view.
+                </div>
+              )}
             </div>
           </aside>
 
@@ -71,9 +113,16 @@ export function WorkspaceShell(props: WorkspaceShellProps) {
                 <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Workspace</p>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-500">
                   {breadcrumb.map((item, index) => (
-                    <span key={`${item}-${index}`} className="inline-flex items-center gap-2">
+                    <span key={`${item.path}-${index}`} className="inline-flex items-center gap-2">
                       {index > 0 ? <ChevronRight className="h-4 w-4" /> : null}
-                      <span className={index === breadcrumb.length - 1 ? "font-semibold text-ink" : undefined}>{item}</span>
+                      <button
+                        type="button"
+                        className={index === breadcrumb.length - 1 ? "font-semibold text-ink" : "transition hover:text-ink"}
+                        onClick={() => props.onNavigate(item.path)}
+                        disabled={index === breadcrumb.length - 1}
+                      >
+                        {item.label}
+                      </button>
                     </span>
                   ))}
                 </div>
@@ -107,7 +156,17 @@ export function WorkspaceShell(props: WorkspaceShellProps) {
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       {entry.isDir ? <Folder className="h-4 w-4 shrink-0 text-spruce" /> : <FileText className="h-4 w-4 shrink-0 text-ember" />}
-                      <span className="truncate font-medium text-ink">{entry.name}</span>
+                      {entry.isDir ? (
+                        <button
+                          type="button"
+                          className="truncate font-medium text-ink transition hover:text-spruce"
+                          onClick={() => props.onNavigate(entry.path)}
+                        >
+                          {entry.name}
+                        </button>
+                      ) : (
+                        <span className="truncate font-medium text-ink">{entry.name}</span>
+                      )}
                     </div>
                     <span>{entry.isDir ? "Directory" : "File"}</span>
                     <span className="capitalize">{entry.classification.split("-").join(" ")}</span>
