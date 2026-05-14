@@ -23,7 +23,7 @@ func main() {
 	service := files.NewLocalService(storageRoot)
 	handler := httpapi.NewServer(service)
 
-	log.Printf("easeftp server listening on %s with storage root %s", addr, storageRoot)
+	log.Printf("easeftp download server listening on %s with storage root %s", addr, storageRoot)
 	if err := http.ListenAndServe(addr, handler); err != nil {
 		log.Fatal(err)
 	}
